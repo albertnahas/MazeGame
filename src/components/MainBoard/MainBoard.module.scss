@@ -1,0 +1,133 @@
+.MainBoard {
+    display: flex;
+    margin: 50px;
+}
+
+.DefaultButton {
+    padding:5px 15px;
+    border-radius:15px;
+    background:#666;
+    color:#eee;
+    cursor: pointer;
+    margin-top:25px;
+    display:inline-block;
+}
+
+.MazeWrapper {
+    flex: 1 0 auto;
+}
+
+.Timer {
+    margin-bottom: 10px;
+    font-family: monospace;
+    font-size: 16px;
+}
+
+.MazeContainer {
+    line-height: 0;
+    display: flex;
+    flex-direction: column-reverse;
+    position: relative;
+}
+
+.Tracker {
+    transition: all 200ms;
+    position: absolute;
+    bottom: 0;
+    transform: scale(0.9);
+    background: url(https://cdn.iconscout.com/icon/free/png-512/ghost-halloween-spooky-costume-32830.png);
+    background-size: contain;
+    animation: Bounce 1s linear infinite;
+    animation-direction: alternate;
+}
+
+@keyframes Bounce {
+    0% {
+        transform: scale(0.9) translateY(4px);
+    }
+    100% {
+        transform: scale(0.94) translateY(-4px);
+    }
+}
+
+.ControlsContainer {
+    flex: 1 0 auto;
+}
+
+.Solved {
+    font-size: 2em;
+}
+
+.next-wrapper {
+    margin-top: 15px;
+}
+
+.next-button {
+    font-family: "Fascinate Inline", cursive;
+    font-size: 16px;
+    appearance: none;
+    background: linear-gradient(to bottom, #f46001, #e14802);
+    border: none;
+    color: #fff;
+    border-radius: 2em;
+    padding: 0.6em 1.5em;
+    overflow: hidden;
+    user-select: none;
+    cursor: pointer;
+    z-index: 1;
+    box-shadow: 0 0 1em rgba(white, 0.2);
+    transition: transform 0.1s cubic-bezier(0.5, 0, 0.5, 1), box-shadow 0.2s;
+
+    &:hover {
+        box-shadow: 0 0 2em rgba(white, 0.3);
+    }
+
+    outline: none;
+
+    &:active {
+        transform: scale(0.8) translateY(10%);
+        transition-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
+    }
+}
+
+.next {
+    --scale-x: 0;
+    --scale-y: 0;
+    pointer-events: none;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: calc(50% - 0.5rem);
+    border-radius: 50%;
+    width: 1em;
+    height: 1em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 5vmin;
+    transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px)) translate(-50%, -50%);
+    pointer-events: none;
+    animation: treat-enter 0.1s ease-in backwards,
+        treat-exit 300ms linear calc((var(--lifetime, 3000) * 1ms) - 300ms) forwards;
+
+    @keyframes treat-enter {
+        from {
+            opacity: 0;
+        }
+    }
+    @keyframes treat-exit {
+        to {
+            opacity: 0;
+        }
+    }
+
+    .inner {
+        animation: inner-rotate 0.6s linear infinite;
+        transform: rotate(calc(-1turn * var(--direction)));
+        @keyframes inner-rotate {
+            to {
+                transform: none;
+            }
+        }
+    }
+}

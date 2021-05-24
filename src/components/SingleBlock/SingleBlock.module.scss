@@ -1,0 +1,47 @@
+@use 'sass:math';
+.SingleBlock {
+}
+
+$borderWidth: 4px;
+$borderColor: rgba(150, 150, 150, 1);
+
+.borderTop {
+    width: calc(100% + #{math.div($borderWidth, 2)});
+    height: $borderWidth;
+    background: $borderColor;
+    display: block;
+    position: absolute;
+    left: 0px;
+    top: math.div(-$borderWidth, 2);
+    border-radius: $borderWidth;
+}
+.borderLeft {
+    width: $borderWidth;
+    height: calc(100% + #{math.div($borderWidth, 2)});
+    background: $borderColor;
+    display: block;
+    position: absolute;
+    left: math.div(-$borderWidth, 2);
+    top: 0px;
+    border-radius: $borderWidth;
+}
+.borderBottom {
+    width: calc(100% + #{math.div($borderWidth, 2)});
+    height: $borderWidth;
+    background: $borderColor;
+    display: block;
+    position: absolute;
+    left: 0px;
+    bottom: math.div(-$borderWidth, 2);
+    border-radius: $borderWidth;
+}
+.borderRight {
+    width: $borderWidth;
+    height: calc(100% + #{math.div($borderWidth, 2)});
+    background: $borderColor;
+    display: block;
+    position: absolute;
+    right: math.div(-$borderWidth, 2);
+    top: 0px;
+    border-radius: $borderWidth;
+}
