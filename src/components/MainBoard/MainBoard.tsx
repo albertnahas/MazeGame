@@ -15,7 +15,7 @@ const MainBoard: React.FC = () => {
   const [path, setPath] = useState<Block[]>([]);
   const [shortestPath, setShortestPath] = useState<Block[]>([]);
   const [timer, setTimer] = useState<number>(0);
-  const [level, setLevel] = useState<number>(8);
+  const [level, setLevel] = useState<number>(0);
   const [success, setSuccess] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
