@@ -1,4 +1,4 @@
-import { BOTTOM, LEFT, RIGHT, TOP } from "../constants"
+import { BOTTOM, DIMENSIONS_LARGE, DIMENSIONS_MEDIUM, DIMENSIONS_SMALL, DIMENSIONS_X_SMALL, LEFT, LEVELS, RIGHT, TOP } from "../constants"
 import Block from "../models/Block"
 
 export const generateBoard = (sizeX: number, sizeY: number) => {
@@ -15,7 +15,6 @@ export const generateBoard = (sizeX: number, sizeY: number) => {
 }
 
 export const linkBoard = (blocks: Block[][]) => {
-    // console.time('startLinking');
     let sizeY = blocks.length;
     let sizeX = blocks[0].length;
     for (let i = 0; i < sizeY; i++) {
@@ -30,7 +29,6 @@ export const linkBoard = (blocks: Block[][]) => {
             block.sides[RIGHT].block = getNeighbor(blocks, block, RIGHT);
         }
     }
-    // console.timeEnd('startLinking');
     return blocks;
 }
 
@@ -52,23 +50,9 @@ export const createPath = (blocks: Block[][]) => {
             block.sides[mapDirection(direction)].open = true;
         }
         let prevDirection: number = direction;
-        // block.sides[RIGHT].open = true;
         direction = Math.random();
         direction = Math.floor(Math.random() * 4);
         if (direction === mapDirection(prevDirection)) { continue };
-        // block.index = index.toString();
-        // if (change) {
-        //     index++;
-        // }
-
-        // if (Math.random() < 0.5 && j < blocks.length) {
-        //     block.sides[RIGHT].open = true;
-        //     j++;
-
-        // } else {
-        //     block.sides[TOP].open = true
-        //     i++;
-        // };
         if (direction === RIGHT && j < blocks.length) {
             block.sides[RIGHT].open = true;
             change = true;
@@ -126,39 +110,21 @@ export const isMoveAllowed = (board: Block[][], current: number[], next: number[
 }
 
 export const mapDirection = (direction: number): number => {
-    // switch (direction) {
-    //     case TOP:
-    //         return BOTTOM
-    //     case LEFT:
-    //         return RIGHT
-    //     case RIGHT:
-    //         return LEFT
-    //     case BOTTOM:
-    //         return TOP
-    //     default:
-    //         return BOTTOM
-    // }
     return (direction + 2) % 4;
 }
 
-export const getShortestPath = async (board: Block[][], path: Block[], block: Block | undefined): Promise<Block[] | undefined> => {
-
-    const per1 = performance.now();
-
+export const getShortestPath = (board: Block[][], path: Block[], block: Block | undefined): Block[] | undefined => {
     const paths = getPossiblePaths(board, [], board[0][0]);
-
-    console.log(paths?.length);
-    const shortestPath = paths?.reduce((p, c) => {
-        return p.length > c.length ? c : p;
-    }, { length: Infinity });
-
-    const per2 = performance.now();
-    const per = per2 - per1;
-    console.log(per)
-
+    const shortestPath = getShortest(paths);
     // return paths;
     return shortestPath as Block[] || path;
+}
 
+const getShortest = (paths: Block[][] | undefined): Block[] | undefined => {
+    const shortest = paths?.reduce((p, c) => {
+        return p.length > c.length ? c : p;
+    }, { length: Infinity });
+    return shortest as Block[] | undefined;
 }
 
 export const getPossiblePaths = (board: Block[][], path: Block[], block: Block | undefined, possiblePaths: Block[][] = []): Block[][] | undefined => {
@@ -175,6 +141,10 @@ export const getPossiblePaths = (board: Block[][], path: Block[], block: Block |
         return possiblePaths;
     }
 
+    if (possiblePaths.find((p) => p.length < path.length)) {
+        return undefined;
+    }
+
     const top = block.sides[TOP].block;
     // const left = block.sides[LEFT].block;
     const bottom = block.sides[BOTTOM].block;
@@ -188,38 +158,12 @@ export const getPossiblePaths = (board: Block[][], path: Block[], block: Block |
     return possiblePaths;
 }
 
-
-// export const getTop = (board: Block[][], block: Block): Block | undefined => {
-//     if (block.sides[TOP].open && block.y < board.length - 1) {
-//         const side = board[block.y + 1][block.x];
-//         return side.sides[mapDirection(TOP)].open ? side : undefined;
-//     }
-//     return undefined;
-// }
-// export const getLeft = (board: Block[][], block: Block): Block | undefined => {
-//     if (block.sides[LEFT].open && block.x > 0)
-//         return board[block.y][block.x - 1];
-//     return undefined;
-// }
-// export const getBottom = (board: Block[][], block: Block): Block | undefined => {
-//     if (block.sides[BOTTOM].open && block.y > 0)
-//         return board[block.y - 1][block.x];
-//     return undefined;
-// }
-// export const getRight = (board: Block[][], block: Block): Block | undefined => {
-//     if (block.sides[RIGHT].open && block.x < board[0].length - 1)
-//         return board[block.y][block.x + 1];
-// }
-
-
 export const getNeighbor = (board: Block[][], block: Block, direction: number): Block | undefined => {
 
     let neighbor: Block | undefined = undefined;
-
     if (!block.sides[direction].open) {
         return undefined;
     }
-
     if (direction === TOP && block.y < board.length - 1 && board[block.y + 1]) {
         neighbor = board[block.y + 1][block.x];
     }
@@ -232,6 +176,12 @@ export const getNeighbor = (board: Block[][], block: Block, direction: number): 
     if (direction === RIGHT && block.x < board[0].length - 1) {
         neighbor = board[block.y][block.x + 1];
     }
-
     return neighbor && neighbor.sides[mapDirection(direction)].open ? neighbor : undefined;
+}
+
+export const getSize = (level: number) => {
+    if (LEVELS[level] < 15) return DIMENSIONS_LARGE;
+    if (LEVELS[level] < 21) return DIMENSIONS_MEDIUM;
+    if (LEVELS[level] < 30) return DIMENSIONS_SMALL;
+    return DIMENSIONS_X_SMALL;
 }

@@ -27,18 +27,14 @@ export default class Block {
             if (maxX && i === RIGHT && x === maxX - 1) {
                 rand = false;
             }
-
             this.sides[i] = new BlockSide(rand);
         }
-
-        this.id = Math.random().toString(32).slice(-4);
+        this.id = Math.random().toString(32).slice(-8);
     }
 }
-
 class BlockSide {
     open: boolean = true;
     block?: Block;
-
     constructor(open: boolean) {
         this.open = open || false;
     }

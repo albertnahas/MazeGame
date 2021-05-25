@@ -1,22 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { BOTTOM, DIMENSIONS_LARGE, DIMENSIONS_MEDIUM, DIMENSIONS_SMALL, DIMENSIONS_X_SMALL, LEFT, LEVELS, RIGHT, TOP } from '../../constants';
+import { BOTTOM, LEFT, LEVELS, RIGHT, TOP } from '../../constants';
 import Block from '../../models/Block';
 import Maze from '../../models/Maze';
-import { generateBoard, getNextBlockCoords, isMoveAllowed, getShortestPath } from '../../util/util';
+import { generateBoard, getNextBlockCoords, getSize, isMoveAllowed } from '../../util/util';
 import SingleBlock from '../SingleBlock/SingleBlock';
 import styles from './MainBoard.module.scss';
-
+import Worker from '../../worker'
 const MainBoard: React.FC = () => {
+
 
   const [theme, setTheme] = useState<string>('Dark');
   const [maze, setMaze] = useState<Maze>({ board: [] });
   const [active, setActive] = useState<number[]>([0, 0]);
   const [path, setPath] = useState<Block[]>([]);
   const [shortestPath, setShortestPath] = useState<Block[]>([]);
-
   const [timer, setTimer] = useState<number>(0);
-  const [level, setLevel] = useState<number>(0);
+  const [level, setLevel] = useState<number>(8);
   const [success, setSuccess] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const size = React.useMemo(() => {
+    return getSize(level);
+  }, [level]);
 
   const activeRef = React.useRef(active);
   const setActiveRef = (data: number[]) => {
@@ -47,13 +52,13 @@ const MainBoard: React.FC = () => {
     genMaze.board = generateBoard(LEVELS[level], LEVELS[level]);
     setMaze(genMaze);
     setPathRef([genMaze.board[0][0]]);
+    setShortestPath([]);
     resetAll();
   }
 
   const resetAll = () => {
     setSuccessRef(false);
     setActiveRef([0, 0]);
-    setShortestPath([]);
     setTimer(0);
   }
 
@@ -71,17 +76,7 @@ const MainBoard: React.FC = () => {
     setPathRef([maze.board[0][0]]);
   }
 
-  const getSize = () => {
-    if (LEVELS[level] < 15) return DIMENSIONS_LARGE;
-    if (LEVELS[level] < 21) return DIMENSIONS_MEDIUM;
-    if (LEVELS[level] < 30) return DIMENSIONS_SMALL;
-    return DIMENSIONS_X_SMALL;
-  }
-
-
-
   const renderMaze = () => {
-    const size = getSize();
     return maze.board.map((row: Block[], index: number) => {
       return (<div key={index}>{
         row.map((block: Block) => {
@@ -130,7 +125,6 @@ const MainBoard: React.FC = () => {
     }
   }
 
-
   useEffect(() => {
     document.body.classList.add(`Body${theme}`);
     return () => {
@@ -158,28 +152,27 @@ const MainBoard: React.FC = () => {
       clearInterval(timerRef.current);
     }
   }, [success]);
-
   useEffect(() => {
     (async () => {
-      if (success) {
-        const shortestPath = await getShortestPath(maze.board, [], maze.board[0][0]) || [];
-        setShortestPath(shortestPath);
+      if (shortestPath.length === 0) {
+        const instance = new Worker();
+        setLoading(true);
+        const shortest = await instance.processData(maze.board, [], maze.board[0][0])
+        setShortestPath(shortest || []);
+        setLoading(false);
       }
       return () => {
       }
     })();
 
-  }, [success, maze.board]);
-
+  },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [maze.board]);
 
   const getTimer = () => new Date(timer * 1000).toISOString().substr(14, 5);
-
   const getResult = () => path.length < shortestPath.length + 4;
-
   const getThemeClass = () => `MainBoard${theme}`;
-
   const switchTheme = () => setTheme(currentTheme => currentTheme === 'Light' ? 'Dark' : 'Light');
-
   return (
     <>
       <div className={`${styles.MainBoard} ${styles[getThemeClass()]}`}>
@@ -187,45 +180,41 @@ const MainBoard: React.FC = () => {
           <div className={styles.Timer}>
             LEVEL {level + 1}/{LEVELS.length} - {getTimer()} / {path.length - 1} {path.length === 2 ? 'Step' : 'Steps'}
           </div>
-
           <div className={styles.MazeContainer}>
             {renderMaze()}
             <div className={styles.Tracker} style={{
-              bottom: active[1] * (getSize()),
-              left: active[0] * (getSize()),
-              width: getSize(),
-              height: getSize()
+              bottom: active[1] * (size),
+              left: active[0] * (size),
+              width: size,
+              height: size
             }}></div>
           </div>
           <span onClick={switchTheme} className={styles.DefaultButton}>Switch to {theme === 'Dark' ? 'Light' : 'Dark'} Mode</span>
         </div>
         <div className={styles.ControlsContainer}>
-          {success && shortestPath &&
+          {success && shortestPath && shortestPath.length > 0 &&
             <>
               <h3 className={styles.Solved}>{getResult() ? 'Awesome!' : 'Good job'}</h3>
               <h4>Solved in {timer} Seconds \ {path.length} Steps</h4>
               Shortest Path is {shortestPath.length + 1} Steps
-              {
-                level < LEVELS.length - 1 &&
-                <>{getResult() &&
-                  <div className={styles['next-wrapper']}>
-                    <button onClick={nextLevel} className={styles['next-button']}>Next Level!</button>
-                  </div>
-                }
-                  <div className={styles['next-wrapper']}>
-                    <button onClick={tryAgain} className={styles['next-button']}>{getResult() ? 'Play' : 'Try'} Again</button>
-                  </div>
+              {getResult() &&
+                <>
+                  {level < LEVELS.length - 1 &&
+                    <div className={styles['next-wrapper']}>
+                      <button onClick={nextLevel} className={styles['next-button']}>Next Level!</button>
+                    </div>
+                  }
+                  {level >= LEVELS.length - 1 &&
+                    <h3 className={styles.Solved}>You rock!</h3>
+                  }
                 </>
               }
-              {
-                level >= LEVELS.length - 1 &&
-                <h3 className={styles.Solved}>You rock!</h3>
-              }
-
+              <div className={styles['next-wrapper']}>
+                <button onClick={tryAgain} className={styles['next-button']}>{getResult() ? 'Play' : 'Try'} Again</button>
+              </div>
             </>
           }
-          {
-            !success &&
+          {!success &&
             <div style={{ margin: '20px', maxWidth: '300px' }} className={styles.Description}>
               <p>
                 Keep moving to reach the escape square,
@@ -234,6 +223,10 @@ const MainBoard: React.FC = () => {
             </p>
               <span onClick={tryAgain} style={{ textDecoration: 'underline', cursor: 'pointer' }}>Reset</span>
             </div>
+          }
+
+          {success && loading &&
+            <p>Finding the shortest path ...</p>
           }
 
         </div>

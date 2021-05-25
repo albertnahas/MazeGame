@@ -9,4 +9,4 @@ export const DIMENSIONS_MEDIUM = 40;
 export const DIMENSIONS_LARGE = 70;
 
 
-export const LEVELS = [5, 10, 15, 20, 22, 25, 28, 30, 32];
+export const LEVELS = [5, 10, 15, 20, 22, 25, 28, 30, 36];
