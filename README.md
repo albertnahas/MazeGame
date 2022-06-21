@@ -4,7 +4,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Live Demo
 
-https://cranky-elion-6fd363.netlify.app/
+https://spookymaze.netlify.app/
 
 ## Available Scripts
 
